@@ -58,6 +58,7 @@ async def create_transaction(
         pengaturan.verify_token(token)
         # =========================================== CREATE TRX ===========================================
         createdAt = int(round(time.time() * 1000))
+        now = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
         ModelsCart = db.query(models.Cart).filter(models.Cart.id == req.cart_id)
         ModelsPayment = db.query(models.Payment).filter(models.Payment.id == req.payment_id)
         ModelsToko = db.query(models.Toko).filter(models.Toko.id == ModelsCart.first().toko_id)
@@ -105,11 +106,42 @@ async def create_transaction(
         items = len(ModelsCart.first().cartitem)
         for i in range(items):
             menu_id = ModelsCartItems.all()[i].menu_id
-            print(menu_id)
+            ModelsMenu = db.query(models.Menu).filter(models.Menu.id == menu_id)
+            qty = ModelsCartItems.all()[i].qty
+            stock = ModelsMenu.first().current_stock
+
+            if stock is None:
+                pass
+            else:
+                # ================================ UPDATE STOCK MENU ================================
+                current_stock = int(stock) - int(qty)
+                ModelsMenu.update({
+                    "current_stock": current_stock,
+                })
+                db.commit()
+
+                # ================================ UPDATE HISTORY STOCK ================================
+                new_menu_stock = models.HistoryStockMenu(
+                    adjustment_stock=qty,
+                    type=4,
+                    note=f'Penjualan item pada tanggal {now} ',
+                    menu_id=menu_id,
+                    createdAt=createdAt
+                )
+                db.add(new_menu_stock)
+                db.commit()
+                db.refresh(new_menu_stock)
 
         status_code = response.status_code = status.HTTP_201_CREATED
         msg = "Success created transaction"
-        data_response = None
+        data_response = {
+            "kasir": ModelsCart.first().account.name,
+            "toko": ModelsCart.first().toko.name,
+            "tipe_pembayaran": ModelsPayment.first().paymnet,
+            "grand_total": ModelsCart.first().grand_total_price,
+            "uang_bayar":req.uang_bayar,
+            "uang_kembalian":req.uang_kembalian,
+        }
     except:
         msg = "Token Expired/Invalid"
         status_code = status.HTTP_511_NETWORK_AUTHENTICATION_REQUIRED
