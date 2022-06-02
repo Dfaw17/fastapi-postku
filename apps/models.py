@@ -15,6 +15,12 @@ cart_servicefee = Table('cart_servicefee', database.Base.metadata,
                         Column('servicefee_id', Integer(), ForeignKey('servicefee.id')),
                         )
 
+transaction_settlement = Table('transaction_settlement', database.Base.metadata,
+                               Column('id', Integer(), primary_key=True, index=True),
+                               Column('transaction_id', Integer(), ForeignKey('transaction.id')),
+                               Column('settlement_id', Integer(), ForeignKey('settlement.id')),
+                               )
+
 
 class Account(database.Base):
     __tablename__ = 'account'
@@ -75,6 +81,7 @@ class Toko(database.Base):
     cartitem = relationship('CartItem', back_populates='toko')
     cart = relationship('Cart', back_populates='toko')
     transaction = relationship('Transaction', back_populates='toko')
+    settlement = relationship('Settlement', back_populates='toko')
 
 
 class KategoriMenu(database.Base):
@@ -399,6 +406,8 @@ class Transaction(database.Base):
     account_id = Column(Integer, ForeignKey('account.id'))
     createdAt = Column(String(128))
 
+    settlement = relationship('Settlement', secondary=transaction_settlement, back_populates='transaction',
+                              lazy='dynamic')
     cart = relationship('Cart', back_populates='transaction')
     payment = relationship('Payment', back_populates='transaction')
     toko = relationship('Toko', back_populates='transaction')
@@ -414,3 +423,32 @@ class CallbackXendit(database.Base):
     ammount = Column(Float)
     status = Column(String(256))
     createdAt = Column(String(128))
+
+
+class ChannelTopup(database.Base):
+    __tablename__ = 'channeltopup'
+
+    id = Column(Integer, primary_key=True, index=True)
+    jenis_pembayaran = Column(String(256))
+    nama = Column(String(256))
+    nomer = Column(String(256))
+    photo_logo = Column(Text)
+    photo_logo_url = Column(Text)
+    createdAt = Column(String(128))
+
+
+class Settlement(database.Base):
+    __tablename__ = 'settlement'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(256))
+    status_settelement = Column(String(256))
+    grand_total_price = Column(Float)
+    photo_bukti = Column(Text)
+    photo_bukti_url = Column(Text)
+    toko_id = Column(Integer, ForeignKey('toko.id'))
+    createdAt = Column(String(128))
+
+    transaction = relationship('Transaction', secondary=transaction_settlement, back_populates='settlement',
+                               lazy='dynamic')
+    toko = relationship('Toko', back_populates='settlement')

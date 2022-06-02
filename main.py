@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from apps import database
 from apps.routers import account, toko, menu, kategori_menu, pelanggan, table, ordertype, labelorder, discount, pajak, \
-    servicefee, banner, article, kritiksaran, absen, payment, contactus, transaction, qris
+    servicefee, banner, article, kritiksaran, absen, payment, contactus, transaction, qris, channeltopup
 
 app = FastAPI(title="MICROSERVICE POSTKU", description="Dokumentasi Backend Service POSTKU System",
               swagger_ui_parameters={"defaultModelsExpandDepth": -1})
@@ -27,3 +27,4 @@ app.include_router(payment.router)
 app.include_router(contactus.router)
 app.include_router(transaction.router)
 app.include_router(qris.router)
+app.include_router(channeltopup.router)
