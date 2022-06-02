@@ -47,6 +47,69 @@ class CreateTrx(BaseModel):
     uang_kembalian: int
 
 
+@router.get('/transaction')
+async def get_list_transaction(start_date: int,
+                               end_date: int,
+                               toko_id: int,
+                               db: Session = Depends(get_db),
+                               token: str = Depends(pengaturan.oauth2_scheme),
+                               ):
+    try:
+        pengaturan.verify_token(token)
+        data = db.query(models.Transaction).filter(models.Transaction.toko_id == toko_id).filter(
+            models.Transaction.createdAt.between(start_date, end_date)).all()
+        msg = "Success get transaction list"
+        status_code = status.HTTP_200_OK
+    except:
+        msg = "Token Expired/Invalid"
+        status_code = status.HTTP_511_NETWORK_AUTHENTICATION_REQUIRED
+        data = None
+
+    return {
+        "status_code": status_code,
+        "msg": msg,
+        "data": data,
+    }
+
+
+@router.get('/transaction/{id}')
+async def get_transaction_detail(id: str,
+                                 response: Response,
+                                 db: Session = Depends(get_db),
+                                 token: str = Depends(pengaturan.oauth2_scheme)):
+    try:
+        pengaturan.verify_token(token)
+        trx = db.query(models.Transaction).filter(models.Transaction.reff_code == id).first()
+        data = db.query(models.Cart).filter(models.Cart.id == trx.cart_id).first()
+
+        status_code = response.status_code = status.HTTP_201_CREATED
+        msg = "Success get detail transaction"
+        resp = {
+            "transaction": trx,
+            "cart": data,
+            "items": db.query(models.CartItem).filter(models.CartItem.cart_id == trx.cart_id).all(),
+            "kasir": db.query(models.Account).filter(models.Account.id == data.account_id).first(),
+            "toko": db.query(models.Toko).filter(models.Toko.id == data.toko_id).first(),
+            "discount_cart": db.query(models.Discount).filter(models.Discount.id == data.disc_id).first(),
+            "pajak": db.query(models.Pajak).filter(models.Pajak.id == data.pajak_id).first(),
+            "ordet_type": db.query(models.OrderType).filter(models.OrderType.id == data.ordertype_id).first(),
+            "label_order": db.query(models.LabelOrder).filter(models.LabelOrder.id == data.labelorder_id).first(),
+            "meja": db.query(models.Table).filter(models.Table.id == data.table_id).first(),
+            "customer": db.query(models.Customer).filter(models.Customer.id == data.customer_id).first(),
+            "service_fee": data.servicefee.all(),
+        }
+    except:
+        msg = "Token Expired/Invalid"
+        status_code = status.HTTP_511_NETWORK_AUTHENTICATION_REQUIRED
+        resp = None
+
+    return {
+        "status_code": status_code,
+        "msg": msg,
+        "data": resp,
+    }
+
+
 @router.post('/transaction')
 async def create_transaction(
         response: Response,
@@ -60,6 +123,7 @@ async def create_transaction(
         createdAt = int(round(time.time() * 1000))
         now = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
         ModelsCart = db.query(models.Cart).filter(models.Cart.id == req.cart_id)
+        ModelsCartItem = db.query(models.CartItem).filter(models.CartItem.cart_id == req.cart_id)
         ModelsPayment = db.query(models.Payment).filter(models.Payment.id == req.payment_id)
         ModelsToko = db.query(models.Toko).filter(models.Toko.id == ModelsCart.first().toko_id)
         ModelsAccount = db.query(models.Account).filter(models.Account.id == ModelsCart.first().account_id)
@@ -93,7 +157,10 @@ async def create_transaction(
         db.commit()
         db.refresh(new_trx)
 
-        # ================================ UPDATE CART, TABLE ================================
+        # ================================ UPDATE CART, TABLE, CART ITEM ================================
+        ModelsCartItem.update({
+            "ordered": 1,
+        })
         ModelsCart.update({
             "ordered": 1,
         })
@@ -139,8 +206,8 @@ async def create_transaction(
             "toko": ModelsCart.first().toko.name,
             "tipe_pembayaran": ModelsPayment.first().paymnet,
             "grand_total": ModelsCart.first().grand_total_price,
-            "uang_bayar":req.uang_bayar,
-            "uang_kembalian":req.uang_kembalian,
+            "uang_bayar": req.uang_bayar,
+            "uang_kembalian": req.uang_kembalian,
         }
     except:
         msg = "Token Expired/Invalid"

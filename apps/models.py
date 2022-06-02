@@ -437,13 +437,14 @@ class ChannelTopup(database.Base):
     createdAt = Column(String(128))
 
 
+# 1 = Request, 2 = Accept
 class Settlement(database.Base):
     __tablename__ = 'settlement'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(256))
     status_settelement = Column(String(256))
-    grand_total_price = Column(Float)
+    grand_total_settlement = Column(Float)
     photo_bukti = Column(Text)
     photo_bukti_url = Column(Text)
     toko_id = Column(Integer, ForeignKey('toko.id'))
