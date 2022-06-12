@@ -28,12 +28,24 @@ default_image_url = "https://postku-fastapi-bucket.s3.amazonaws.com/MainIcon.png
 # EMAIL
 
 Temp_Path = os.path.realpath('.')
+# conf = ConnectionConfig(
+#     MAIL_USERNAME="postku.id@gmail.com",
+#     MAIL_PASSWORD="_Fawwaz170901_@@",
+#     MAIL_FROM="postku.id@gmail.com",
+#     MAIL_PORT=587,
+#     MAIL_SERVER="smtp.gmail.com",
+#     MAIL_TLS=True,
+#     MAIL_SSL=False,
+#     USE_CREDENTIALS=True,
+#     VALIDATE_CERTS=True,
+#     TEMPLATE_FOLDER='apps/templates',
+# )
 conf = ConnectionConfig(
     MAIL_USERNAME="postku.id@gmail.com",
-    MAIL_PASSWORD="_Fawwaz170901_@@",
+    MAIL_PASSWORD="bEJ72k0P8nXt",
     MAIL_FROM="postku.id@gmail.com",
     MAIL_PORT=587,
-    MAIL_SERVER="smtp.gmail.com",
+    MAIL_SERVER="smtp.zoho.com",
     MAIL_TLS=True,
     MAIL_SSL=False,
     USE_CREDENTIALS=True,

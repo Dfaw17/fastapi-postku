@@ -51,6 +51,7 @@ class Account(database.Base):
     transaction = relationship('Transaction', back_populates='account')
 
 
+# Status Request (0=available to request topup, 1=has been request topup, 2=request topup on checking admin)
 class Toko(database.Base):
     __tablename__ = 'toko'
 
@@ -65,6 +66,12 @@ class Toko(database.Base):
     photo_logo = Column(Text)
     photo_logo_url = Column(Text)
     is_deleted = Column(Boolean)
+
+    wallet_code = Column(String(256))
+    wallet_balance = Column(Float)
+    status_req_deposit = Column(Integer)
+    balance_req = Column(BigInteger)
+
     createdAt = Column(String(128))
 
     account = relationship('Account', secondary=account_toko, back_populates='toko', lazy='dynamic', )
@@ -82,6 +89,8 @@ class Toko(database.Base):
     cart = relationship('Cart', back_populates='toko')
     transaction = relationship('Transaction', back_populates='toko')
     settlement = relationship('Settlement', back_populates='toko')
+    topupwallet = relationship('TopupWallet', back_populates='toko')
+    historywallet = relationship('HistoryWallet', back_populates='toko')
 
 
 class KategoriMenu(database.Base):
@@ -436,6 +445,8 @@ class ChannelTopup(database.Base):
     photo_logo_url = Column(Text)
     createdAt = Column(String(128))
 
+    topupwallet = relationship('TopupWallet', back_populates='channeltopup')
+
 
 # 1 = Request, 2 = Accept
 class Settlement(database.Base):
@@ -453,3 +464,38 @@ class Settlement(database.Base):
     transaction = relationship('Transaction', secondary=transaction_settlement, back_populates='settlement',
                                lazy='dynamic')
     toko = relationship('Toko', back_populates='settlement')
+
+
+# 1=checking admin, 2=approve, 3=cancel
+class TopupWallet(database.Base):
+    __tablename__ = 'topupwallet'
+
+    id = Column(Integer, primary_key=True, index=True)
+    wallet_code = Column(String(256))
+    reason = Column(String(256))
+    status_topup = Column(Integer)
+    photo_bukti = Column(Text)
+    photo_bukti_url = Column(Text)
+    balance_req = Column(BigInteger)
+    toko_id = Column(Integer, ForeignKey('toko.id'))
+    channel_topup_id = Column(Integer, ForeignKey('channeltopup.id'))
+    createdAt = Column(String(128))
+
+    toko = relationship('Toko', back_populates='topupwallet')
+    channeltopup = relationship('ChannelTopup', back_populates='topupwallet')
+
+
+# 1= Debit, 2= Kredit, 3=Refund, 4=Topup
+class HistoryWallet(database.Base):
+    __tablename__ = 'historywallet'
+
+    id = Column(Integer, primary_key=True, index=True)
+    wallet_code = Column(String(256))
+    reff_id = Column(String(256))
+    type = Column(Integer)
+    balance = Column(BigInteger)
+    note = Column(Text)
+    toko_id = Column(Integer, ForeignKey('toko.id'))
+    createdAt = Column(String(128))
+
+    toko = relationship('Toko', back_populates='historywallet')

@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from starlette.background import BackgroundTasks
 
-from apps import database, schemas, models, pengaturan
+from apps import database, models, pengaturan
 import time, random
 
 get_db = database.get_db

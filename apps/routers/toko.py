@@ -72,8 +72,11 @@ async def create_toko(
         pengaturan.verify_token(token)
         data_account = db.query(models.Account).filter(models.Account.id == req.owner_id).first()
         createdAt = int(round(time.time() * 1000))
+        wallet_code = "WLT-" + str(int(round(time.time() * 1000)))
+
         new_toko = models.Toko(name=req.name, address=req.address, province=req.province, city=req.city,
-                               district=req.district,
+                               district=req.district, wallet_code=wallet_code, wallet_balance=0, status_req_deposit=0,
+                               balance_req=0,
                                village=req.village, category=req.category, createdAt=createdAt, is_deleted=0)
         data_account.toko.append(new_toko)
 
