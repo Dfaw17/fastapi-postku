@@ -43,12 +43,15 @@ class Account(database.Base):
     OTP = Column(Integer)
     createdAt = Column(String(128))
     is_deleted = Column(Boolean)
+    is_subs = Column(Boolean)
+    subs_date = Column(String(128))
 
     toko = relationship('Toko', secondary=account_toko, back_populates='account', lazy='dynamic')
     kritiksaran = relationship('KritikSaran', back_populates='account')
     absen = relationship('Absen', back_populates='account')
     cart = relationship('Cart', back_populates='account')
     transaction = relationship('Transaction', back_populates='account')
+    trxsubs = relationship('TrxSubs', back_populates='account')
 
 
 # Status Request (0=available to request topup, 1=has been request topup, 2=request topup on checking admin)
@@ -499,3 +502,16 @@ class HistoryWallet(database.Base):
     createdAt = Column(String(128))
 
     toko = relationship('Toko', back_populates='historywallet')
+
+
+class TrxSubs(database.Base):
+    __tablename__ = 'trxsubs'
+
+    id = Column(Integer, primary_key=True, index=True)
+    reff_id = Column(String(256))
+    date_subs = Column(BigInteger)
+    invoice = Column(BigInteger)
+    account_id = Column(Integer, ForeignKey('account.id'))
+    createdAt = Column(String(128))
+
+    account = relationship('Account', back_populates='trxsubs')
