@@ -515,3 +515,53 @@ class TrxSubs(database.Base):
     createdAt = Column(String(128))
 
     account = relationship('Account', back_populates='trxsubs')
+
+
+class ProductDigi(database.Base):
+    __tablename__ = 'productdigi'
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_name = Column(String(256))
+    category = Column(String(256))
+    brand = Column(String(256))
+    type = Column(String(256))
+    seller_name = Column(String(256))
+    buyer_sku_code = Column(String(256))
+    start_cut_off = Column(String(256))
+    end_cut_off = Column(String(256))
+    desc = Column(String(256))
+    buyer_product_status = Column(Boolean)
+    seller_product_status = Column(Boolean)
+    unlimited_stock = Column(Boolean)
+    multi = Column(Boolean)
+    price = Column(Float)
+    price_postku = Column(Float)
+    stock = Column(BigInteger)
+    last_sync_at = Column(String(128))
+
+
+class CategoryDigi(database.Base):
+    __tablename__ = 'categorydigi'
+
+    id = Column(Integer, primary_key=True, index=True)
+    category_ppob_name = Column(String(256))
+    category_ppob_key = Column(String(256))
+    photo_logo = Column(Text)
+    photo_logo_url = Column(Text)
+    createdAt = Column(String(128))
+
+    branddigi = relationship('BrandDigi', back_populates='categorydigi')
+
+
+class BrandDigi(database.Base):
+    __tablename__ = 'branddigi'
+
+    id = Column(Integer, primary_key=True, index=True)
+    brand_ppob_name = Column(String(256))
+    brand_ppob_key = Column(String(256))
+    photo_logo = Column(Text)
+    photo_logo_url = Column(Text)
+    categorydigi_id = Column(Integer, ForeignKey('categorydigi.id'))
+    createdAt = Column(String(128))
+
+    categorydigi = relationship('CategoryDigi', back_populates='branddigi')
